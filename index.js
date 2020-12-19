@@ -51,7 +51,20 @@ clear - Clears the display
 
 
 function list() {
-  return 'list not yet implemented';
+  let req = new XMLHttpRequest();
+  req.open("GET", `${window.location.href}/api/list`, false);
+  req.send();
+  console.log(req.status);
+  if (req.status===200) {
+    let data = JSON.parse(req.response);
+    let result = '';
+    data.forEach((item) => {
+      result += `${item.title}\n`;
+    });
+    return result.trimEnd();
+  } else {
+    return `Unable to get result (${req.status})`;
+  }
 }
 
 
