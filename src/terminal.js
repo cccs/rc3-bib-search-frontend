@@ -128,7 +128,7 @@ const executor = commands => (cmd, ...args) => cb => {
 };
 
 // Handle keyboard events
-const keyboard = (parse) => {
+const keyboard = (parse, continue_out, paging) => {
   let input = [];
   const keys = {8: 'backspace', 13: 'enter'};
   const ignoreKey = code => code >= 33 && code <= 40;
@@ -136,24 +136,38 @@ const keyboard = (parse) => {
 
   return {
     keypress: (ev) => {
-      if (key(ev) === 'enter') {
-        const str = input.join('').trim();
-        parse(str);
-        input = [];
-      } else if (key(ev) !== 'backspace') {
-        input.push(String.fromCharCode(ev.which || ev.keyCode));
+      if (paging.on) {
+        if (ev.key === ' ') {
+          continue_out(false);
+        } else if (ev.key === 'q') {
+          continue_out(true);
+        }
+      } else {
+        if (key(ev) === 'enter') {
+          const str = input.join('').trim();
+          parse(str);
+          input = [];
+        } else if (key(ev) !== 'backspace') {
+          input.push(String.fromCharCode(ev.which || ev.keyCode));
+        }
       }
     },
 
     keydown: (ev) => {
-      if (key(ev) === 'backspace') {
-        if (input.length > 0) {
-          input.pop();
-        } else {
+      if (paging.on) {
+        if (ev.key !== 'q' && ev.key !== ' ') {
           ev.preventDefault();
         }
-      } else if (ignoreKey(ev.keyCode)) {
-        ev.preventDefault();
+      } else {
+        if (key(ev) === 'backspace') {
+          if (input.length > 0) {
+            input.pop();
+          } else {
+            ev.preventDefault();
+          }
+        } else if (ignoreKey(ev.keyCode)) {
+          ev.preventDefault();
+        }
       }
     }
   };
@@ -163,6 +177,10 @@ const keyboard = (parse) => {
 export const terminal = (opts) => {
   let buffer = []; // What will be output to display
   let busy = false; // If we cannot type at the moment
+  let paging = {
+    on: false,
+  };
+  let lines = [];
 
   const {prompt, banner, commands, buflen, tickrate} = createOptions(opts);
   const $root = document.querySelector('#terminal');
@@ -171,16 +189,40 @@ export const terminal = (opts) => {
   const width = $element.offsetWidth;
   const cwidth = Math.round((width / fontSize) * 1.9); // FIXME: Should be calculated via canvas
 
+  const continue_out = (abort) => {
+    const page_size = 15;
+    let append = '';
+
+    if (paging.on) {
+      append = '\n';
+    }
+    if (abort) {
+      append = append + prompt();
+      lines = [];
+      paging.on = false;
+    } else {
+      if (lines.length < page_size - 2) {
+        // output rest
+        append = append + lines.join('\n') + '\n' + prompt();
+        lines = [];
+        paging.on = false;
+      } else {
+        append = append + lines.splice(0, page_size - 1).join('\n') + '\n--- Space to continue, q to abort ---';
+        paging.on = true;
+      }
+    }
+    buffer = buffer.concat(append.split(''));
+  }
+
   const output = (output, center) => {
-    let lines = output.split(/\n/);
+    lines = output.split(/\n/);
     if (center) {
       lines = lines.map(line => line.length > 0
         ? line.padStart(line.length + ((cwidth / 2) - (line.length / 2)), ' ')
         : line);
     }
 
-    const append = lines.join('\n') + '\n' + prompt();
-    buffer = buffer.concat(append.split(''));
+    continue_out();
   };
 
   const print = printer($element, buflen);
@@ -190,11 +232,11 @@ export const terminal = (opts) => {
   const render = renderer(tickrate, onrender);
   const parse = parser(onparsed);
   const focus = () => setTimeout(() => $element.focus(), 1);
-  const kbd = keyboard(parse);
+  const kbd = keyboard(parse, continue_out, paging);
   const clear = () => ($element.value = '');
   const input = ev => busy
     ? ev.preventDefault()
-    : kbd[ev.type](ev);
+    : kbd[ev.type](ev, paging);
 
   $element.addEventListener('focus', () => setSelectionRange($element));
   $element.addEventListener('blur', focus);
