@@ -43,40 +43,68 @@ const helpText = `
 Available commands:
 
 help - This output
-list - Show all books in index
+info - Show some data on the library
 list <level> - Show all books on given level
 search <query> - Search for books
 clear - Clears the display
 `;
 
 
-function list() {
+function booksAsText(json) {
+  let result = '';
+  json.forEach((item) => {
+    result += `${item.title} - level ${item.level}\n`;
+  });
+  return result.trimEnd();
+}
+
+
+function info() {
   let req = new XMLHttpRequest();
-  req.open("GET", `${window.location.href}/api/list`, false);
+  req.open("GET", `${window.location.href}/api/info`, false);
   req.send();
-  console.log(req.status);
   if (req.status===200) {
     let data = JSON.parse(req.response);
-    let result = '';
-    data.forEach((item) => {
-      result += `${item.title}\n`;
-    });
-    return result.trimEnd();
+    return `${data.bookCount} books on ${data.levels} levels`;
   } else {
     return `Unable to get result (${req.status})`;
   }
 }
 
 
+function list() {
+  return `Can't list all books!`;
+}
+
+
 function listLevel(level) {
-  return `list of level ${level} not yet implemented`;
+  let req = new XMLHttpRequest();
+  req.open("GET", `${window.location.href}/api/list/${level}`, false);
+  req.send();
+  if (req.status===200) {
+    let data = JSON.parse(req.response);
+    return booksAsText(data);
+  } else {
+    return `Unable to get result (${req.status})`;
+  }
 }
 
 
 function search() {
   let args = Array.prototype.slice.call(arguments);
-  let query = args.join(' ');
-  return `query for ${query} not yet implemented`;
+  let query = {
+    query: args.join(' '),
+  }
+
+  let req = new XMLHttpRequest();
+  req.open("POST", `${window.location.href}/api/search`, false);
+  req.send(query);
+  if (req.status===200) {
+    let data = JSON.parse(req.response);
+    return booksAsText(data);
+  } else {
+    return `Unable to get result (${req.status})`;
+  }
 }
 
 
@@ -90,6 +118,7 @@ const load = () => {
     banner,
     commands: {
       help: () => helpText,
+      info: info,
       list: (level) => { return (level ? listLevel(level) : list()) },
       search: search,
       clear: () => t.clear(),
