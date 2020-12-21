@@ -136,41 +136,37 @@ const keyboard = (parse, continue_out, paging) => {
 
   return {
     keypress: (ev) => {
-      if (!ev.key.startsWith('Arrow')) {
-        if (paging.on) {
-          if (ev.key === ' ') {
-            continue_out(false);
-          } else if (ev.key === 'q') {
-            continue_out(true);
-          }
-        } else {
-          if (key(ev) === 'enter') {
-            const str = input.join('').trim();
-            parse(str);
-            input = [];
-          } else if (key(ev) !== 'backspace') {
-            input.push(String.fromCharCode(ev.which || ev.keyCode));
-          }
+      if (paging.on) {
+        if (ev.key === ' ') {
+          continue_out(false);
+        } else if (ev.key === 'q') {
+          continue_out(true);
+        }
+      } else {
+        if (key(ev) === 'enter') {
+          const str = input.join('').trim();
+          parse(str);
+          input = [];
+        } else if (key(ev) !== 'backspace') {
+          input.push(String.fromCharCode(ev.which || ev.keyCode));
         }
       }
     },
 
     keydown: (ev) => {
-      if (!ev.key.startsWith('Arrow')) {
-        if (paging.on) {
-          if (ev.key !== 'q' && ev.key !== ' ') {
+      if (paging.on) {
+        if (ev.key !== 'q' && ev.key !== ' ') {
+          ev.preventDefault();
+        }
+      } else {
+        if (key(ev) === 'backspace') {
+          if (input.length > 0) {
+            input.pop();
+          } else {
             ev.preventDefault();
           }
-        } else {
-          if (key(ev) === 'backspace') {
-            if (input.length > 0) {
-              input.pop();
-            } else {
-              ev.preventDefault();
-            }
-          } else if (ignoreKey(ev.keyCode)) {
-            ev.preventDefault();
-          }
+        } else if (ignoreKey(ev.keyCode)) {
+          ev.preventDefault();
         }
       }
     }
@@ -241,8 +237,9 @@ export const terminal = (opts) => {
   const input = ev => busy
     ? ev.preventDefault()
     : kbd[ev.type](ev, paging);
+  const focusListener = () => setSelectionRange($element);
 
-  $element.addEventListener('focus', () => setSelectionRange($element));
+  $element.addEventListener('focus', focusListener);
   $element.addEventListener('blur', focus);
   $element.addEventListener('keypress', input);
   $element.addEventListener('keydown', input);
@@ -250,9 +247,19 @@ export const terminal = (opts) => {
   $root.addEventListener('click', focus);
   $root.appendChild($element);
 
+  const unregister = () => {
+    $element.removeEventListener('focus', focusListener);
+    $element.removeEventListener('blur', focus);
+    $element.removeEventListener('keypress', input);
+    $element.removeEventListener('keydown', input);
+    window.removeEventListener('focus', focus);
+    $root.removeEventListener('click', focus);
+    console.log('Event listeners removed');
+  };
+
   render();
   output(banner, true);
   focus();
 
-  return {focus, parse, clear, print: output};
+  return {focus, parse, clear, print: output, unregister};
 };

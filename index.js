@@ -47,6 +47,7 @@ info - Show some data on the library
 list <level> - Show all books on given level
 search <query> - Search for books
 clear - Clears the display
+exit - Detach from terminal (return control to 2d world)
 `;
 
 
@@ -122,6 +123,7 @@ const load = () => {
       list: (level) => { return (level ? listLevel(level) : list()) },
       search: search,
       clear: () => t.clear(),
+      exit: () => { t.unregister(); return 'Bye bye!'; }
     }
   });
 };
