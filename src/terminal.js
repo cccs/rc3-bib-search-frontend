@@ -136,37 +136,41 @@ const keyboard = (parse, continue_out, paging) => {
 
   return {
     keypress: (ev) => {
-      if (paging.on) {
-        if (ev.key === ' ') {
-          continue_out(false);
-        } else if (ev.key === 'q') {
-          continue_out(true);
-        }
-      } else {
-        if (key(ev) === 'enter') {
-          const str = input.join('').trim();
-          parse(str);
-          input = [];
-        } else if (key(ev) !== 'backspace') {
-          input.push(String.fromCharCode(ev.which || ev.keyCode));
+      if (!ev.key.startsWith('Arrow')) {
+        if (paging.on) {
+          if (ev.key === ' ') {
+            continue_out(false);
+          } else if (ev.key === 'q') {
+            continue_out(true);
+          }
+        } else {
+          if (key(ev) === 'enter') {
+            const str = input.join('').trim();
+            parse(str);
+            input = [];
+          } else if (key(ev) !== 'backspace') {
+            input.push(String.fromCharCode(ev.which || ev.keyCode));
+          }
         }
       }
     },
 
     keydown: (ev) => {
-      if (paging.on) {
-        if (ev.key !== 'q' && ev.key !== ' ') {
-          ev.preventDefault();
-        }
-      } else {
-        if (key(ev) === 'backspace') {
-          if (input.length > 0) {
-            input.pop();
-          } else {
+      if (!ev.key.startsWith('Arrow')) {
+        if (paging.on) {
+          if (ev.key !== 'q' && ev.key !== ' ') {
             ev.preventDefault();
           }
-        } else if (ignoreKey(ev.keyCode)) {
-          ev.preventDefault();
+        } else {
+          if (key(ev) === 'backspace') {
+            if (input.length > 0) {
+              input.pop();
+            } else {
+              ev.preventDefault();
+            }
+          } else if (ignoreKey(ev.keyCode)) {
+            ev.preventDefault();
+          }
         }
       }
     }
