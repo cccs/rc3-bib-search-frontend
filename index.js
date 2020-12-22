@@ -124,7 +124,7 @@ const load = () => {
       list: (level) => { return (level ? listLevel(level) : list()) },
       search: search,
       clear: () => t.clear(),
-      exit: () => { t.unregister(); window.parent.focus(); return "You're free to go\n\n"; }
+      exit: () => { t.unregister(); document.getElementById('terminal').remove(); return "\nYou're free to go\n\n"; }
     }
   });
 };
