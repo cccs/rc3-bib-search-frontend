@@ -34,6 +34,7 @@ Chaos search index
 
 
 Type 'help' for a list of available commands.
+Type 'exit' to return control to 2d world.
 
 
 `;
@@ -47,7 +48,7 @@ info - Show some data on the library
 list <level> - Show all books on given level
 search <query> - Search for books
 clear - Clears the display
-exit - Detach from terminal (return control to 2d world)
+exit - Detach from terminal
 `;
 
 
@@ -123,7 +124,7 @@ const load = () => {
       list: (level) => { return (level ? listLevel(level) : list()) },
       search: search,
       clear: () => t.clear(),
-      exit: () => { t.unregister(); return 'Bye bye!'; }
+      exit: () => { t.unregister(); window.parent.focus(); return "You're free to go\n\n"; }
     }
   });
 };
