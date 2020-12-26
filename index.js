@@ -54,9 +54,10 @@ exit - Detach from terminal
 
 function booksAsText(json) {
   let result = '';
-  json.forEach((item) => {
-    result += `${item.title} - level ${item.level}\n`;
+  json.books.forEach((item) => {
+    result += `${item.title} - level ${item.level} ${item.levelDescr}\n`;
   });
+  result += json.info;
   return result.trimEnd();
 }
 
