@@ -63,7 +63,7 @@ function booksAsText(json) {
 
 function info() {
   let req = new XMLHttpRequest();
-  req.open("GET", `${window.location.href}/api/info`, false);
+  req.open("GET", `${window.location.href}api/info`, false);
   req.send();
   if (req.status===200) {
     let data = JSON.parse(req.response);
@@ -81,7 +81,7 @@ function list() {
 
 function listLevel(level) {
   let req = new XMLHttpRequest();
-  req.open("GET", `${window.location.href}/api/list/${level}`, false);
+  req.open("GET", `${window.location.href}api/list/${level}`, false);
   req.send();
   if (req.status===200) {
     let data = JSON.parse(req.response);
@@ -99,7 +99,7 @@ function search() {
   }
 
   let req = new XMLHttpRequest();
-  req.open("POST", `${window.location.href}/api/search`, false);
+  req.open("POST", `${window.location.href}api/search`, false);
   req.send(query);
   if (req.status===200) {
     let data = JSON.parse(req.response);
