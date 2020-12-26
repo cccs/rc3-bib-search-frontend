@@ -101,7 +101,8 @@ function search() {
 
   let req = new XMLHttpRequest();
   req.open("POST", `${window.location.href}api/search`, false);
-  req.send(query);
+  req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  req.send(JSON.stringify(query));
   if (req.status===200) {
     let data = JSON.parse(req.response);
     return booksAsText(data);
