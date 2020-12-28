@@ -47,6 +47,7 @@ help - This output
 info - Show some data on the library
 list <level> - Show all books on given level
 search <query> - Search for books
+suggest <url> <description> - Suggest new entry for library
 clear - Clears the display
 exit - Detach from terminal
 `;
@@ -115,6 +116,25 @@ function search() {
 }
 
 
+function suggest() {
+  let args = Array.prototype.slice.call(arguments);
+  let suggestion = {
+    url: args[0],
+    title: args.slice(1).join(' '),
+  }
+
+  let req = new XMLHttpRequest();
+  req.open("POST", `${window.location.href}api/suggest`, false);
+  req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  req.send(JSON.stringify(suggestion));
+  if (req.status===200 || req.status===403) {
+    return req.response;
+  } else {
+    return `Unable to submit suggestion (${req.status})`;
+  }
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,6 +148,7 @@ const load = () => {
       info: info,
       list: (level) => { return (level ? listLevel(level) : list()) },
       search: search,
+      suggest: suggest,
       clear: () => t.clear(),
       exit: () => { t.unregister(); document.getElementById('terminal').remove(); return "\nYou're free to go\n\n"; }
     }
