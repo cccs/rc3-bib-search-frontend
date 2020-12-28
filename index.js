@@ -58,6 +58,9 @@ function booksAsText(json) {
     result += `${item.title} - level ${item.level} ${item.levelDescr}\n`;
   });
   result += json.info;
+  if (json.info) {
+    console.log(json.info);
+  }
   return result.trimEnd();
 }
 
