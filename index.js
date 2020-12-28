@@ -32,10 +32,10 @@ const banner = `
 Virtual library of Stuttgart
 Chaos search index
 
-
 Type 'help' for a list of available commands.
 Type 'exit' to return control to 2d world.
 
+Create a hacker's library (but respect copyright, please) by suggesting content!
 
 `;
 
